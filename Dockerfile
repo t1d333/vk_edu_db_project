@@ -28,7 +28,6 @@ ENV POSTGRES_HOST localhost
 ENV POSTGRES_PORT 5432
 
 COPY --from=builder /forum/app app
-
 CMD pg_ctl start && ./app
 
 
