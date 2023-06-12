@@ -6,7 +6,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-var InternalServerError = errors.New("Internal server error")
+var (
+	InternalServerError = errors.New("Internal server error")
+	BadRequstError      = errors.New("Bad request")
+)
 
 // DB errors
 var InternalDBError = errors.New("Internal DB error")
@@ -17,9 +20,23 @@ var (
 	UserNotFoundError      = errors.New("User not found")
 )
 
+// Forum errors
+var (
+	ForumAlreadyExistsError = errors.New("Forum already exists")
+	ForumNotFound           = errors.New("Forum not found")
+)
+
+// Thread errors
+
+var ThreadAlreadyExists = errors.New("Thread already exists")
+
 var ErrorToStatusCode = map[error]int{
-	InternalServerError:    fasthttp.StatusInternalServerError,
-	InternalDBError:        fasthttp.StatusInternalServerError,
-	UserAlreadyExistsError: fasthttp.StatusConflict,
-	UserNotFoundError:      fasthttp.StatusNotFound,
+	InternalServerError:     fasthttp.StatusInternalServerError,
+	BadRequstError:          fasthttp.StatusBadRequest,
+	InternalDBError:         fasthttp.StatusInternalServerError,
+	UserAlreadyExistsError:  fasthttp.StatusConflict,
+	UserNotFoundError:       fasthttp.StatusNotFound,
+	ForumAlreadyExistsError: fasthttp.StatusConflict,
+	ForumNotFound:           fasthttp.StatusNotFound,
+	ThreadAlreadyExists:     fasthttp.StatusConflict,
 }

@@ -36,6 +36,8 @@ func easyjsonE34310f8DecodeGithubComT1d333VkEduDbProjectInternalModels(in *jlexe
 			continue
 		}
 		switch key {
+		case "message":
+			out.Message = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -50,6 +52,11 @@ func easyjsonE34310f8EncodeGithubComT1d333VkEduDbProjectInternalModels(out *jwri
 	out.RawByte('{')
 	first := true
 	_ = first
+	{
+		const prefix string = ",\"message\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.Message))
+	}
 	out.RawByte('}')
 }
 

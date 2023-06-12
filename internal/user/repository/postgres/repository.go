@@ -21,22 +21,34 @@ func NewRepository(logger *zap.Logger, conn *pgx.Conn) user.Repository {
 	return &repository{logger, conn}
 }
 
-func (rep *repository) Create(user *models.User) (models.User, error) {
+func (rep *repository) Create(user *models.User) ([]models.User, error) {
 	row := rep.conn.QueryRow(context.Background(), createUserCmd, user.Nickname, user.Fullname, user.About, user.Email)
-
 	if err := row.Scan(&user.Id, &user.Nickname, &user.Fullname, &user.About, &user.Email); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.ConstraintName == "users_nickname_key" || pgErr.ConstraintName == "users_email_key" {
-				user, _ := rep.Get(user.Nickname)
-				return user, pkgErrors.UserAlreadyExistsError
+			users := make([]models.User, 0)
+			if pgErr.ConstraintName == "users_email_key" || pgErr.ConstraintName == "users_nickname_key" {
+				if user, err := rep.Get(user.Nickname); err == nil {
+					users = append(users, user)
+				}
+
+				if user, err := rep.GetByEmail(user.Email); err == nil {
+					if len(users) > 0 {
+						if user.Id != users[0].Id {
+							users = append(users, user)
+						}
+					} else {
+						users = append(users, user)
+					}
+				}
+				return users, pkgErrors.UserAlreadyExistsError
 			} else {
-				rep.logger.Error("Internal DB error", zap.Error(err))
-				return *user, pkgErrors.InternalDBError
+				rep.logger.Error("Query: "+createUserCmd, zap.Error(err))
+				return []models.User{}, pkgErrors.InternalDBError
 			}
 		}
 	}
-	return *user, nil
+	return []models.User{*user}, nil
 }
 
 func (rep *repository) Update(user *models.User) (models.User, error) {
@@ -64,6 +76,21 @@ func (rep *repository) Update(user *models.User) (models.User, error) {
 
 func (rep *repository) Get(nickname string) (models.User, error) {
 	row := rep.conn.QueryRow(context.Background(), getUserCmd, nickname)
+	user := models.User{}
+	if err := row.Scan(&user.Id, &user.Nickname, &user.Fullname, &user.About, &user.Email); err != nil {
+		if errors.Is(pgx.ErrNoRows, err) {
+			return user, pkgErrors.UserNotFoundError
+		} else {
+			rep.logger.Error("Internal DB error", zap.Error(err))
+			return user, pkgErrors.InternalDBError
+		}
+	}
+
+	return user, nil
+}
+
+func (rep *repository) GetByEmail(email string) (models.User, error) {
+	row := rep.conn.QueryRow(context.Background(), getUserByEmailCmd, email)
 	user := models.User{}
 	if err := row.Scan(&user.Id, &user.Nickname, &user.Fullname, &user.About, &user.Email); err != nil {
 		if errors.Is(pgx.ErrNoRows, err) {

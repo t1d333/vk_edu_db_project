@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/t1d333/vk_edu_db_project/internal/models"
 	"github.com/t1d333/vk_edu_db_project/internal/pkg/errors"
@@ -11,6 +9,7 @@ import (
 
 func ErrorMiddlaware(handler routing.Handler) routing.Handler {
 	return func(ctx *routing.Context) error {
+		ctx.SetContentType("application/json")
 		err := handler(ctx)
 		if err == nil {
 			return nil
@@ -23,9 +22,9 @@ func ErrorMiddlaware(handler routing.Handler) routing.Handler {
 			statusCode = fasthttp.StatusInternalServerError
 		}
 
-		fmt.Println(err, ctx.Request.URI().String())
 		response := models.ErrorResponse{Message: err.Error()}
 		body, _ := response.MarshalJSON()
+		ctx.ResetBody()
 		ctx.SetStatusCode(statusCode)
 		ctx.SetBody(body)
 

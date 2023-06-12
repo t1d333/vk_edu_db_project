@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"errors"
 
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -20,9 +21,9 @@ type delivery struct {
 
 func RegisterHandlers(router *routing.Router, logger *zap.Logger, serv user.Service) {
 	del := delivery{serv, logger}
-	router.Post("/user/<nickname>/create", middleware.ErrorMiddlaware(del.Create))
-	router.Post("/user/<nickname>/profile", middleware.ErrorMiddlaware(del.Update))
-	router.Get("/user/<nickname>/profile", middleware.ErrorMiddlaware(del.Get))
+	router.Post("/api/user/<nickname>/create", middleware.ErrorMiddlaware(del.Create))
+	router.Post("/api/user/<nickname>/profile", middleware.ErrorMiddlaware(del.Update))
+	router.Get("/api/user/<nickname>/profile", middleware.ErrorMiddlaware(del.Get))
 }
 
 func (del *delivery) Get(ctx *routing.Context) error {
@@ -49,10 +50,10 @@ func (del *delivery) Create(ctx *routing.Context) error {
 
 	if err := user.UnmarshalJSON(body); err != nil {
 		del.logger.Error("", zap.Error(err))
-		return err
+		return pkgErrors.BadRequstError
 	}
 
-	user, err := del.service.Create(&user)
+	users, err := del.service.Create(&user)
 
 	if err != nil {
 		if errors.Is(pkgErrors.UserAlreadyExistsError, err) {
@@ -64,10 +65,11 @@ func (del *delivery) Create(ctx *routing.Context) error {
 		ctx.SetStatusCode(fasthttp.StatusCreated)
 	}
 
-	body, err = user.MarshalJSON()
-
-	if err != nil {
-		return err
+	body = make([]byte, 0)
+	if err == nil {
+		body, _ = users[0].MarshalJSON()
+	} else {
+		body, _ = json.Marshal(users)
 	}
 
 	ctx.SetBody(body)

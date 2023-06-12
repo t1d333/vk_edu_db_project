@@ -15,7 +15,7 @@ func NewService(logger *zap.Logger, rep user.Repository) user.Service {
 	return &service{logger, rep}
 }
 
-func (serv *service) Create(user *models.User) (models.User, error) {
+func (serv *service) Create(user *models.User) ([]models.User, error) {
 	return serv.rep.Create(user)
 }
 
