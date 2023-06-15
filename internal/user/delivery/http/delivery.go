@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"errors"
 
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -69,7 +68,7 @@ func (del *delivery) Create(ctx *routing.Context) error {
 	if err == nil {
 		body, _ = users[0].MarshalJSON()
 	} else {
-		body, _ = json.Marshal(users)
+		body, _ = users.MarshalJSON()
 	}
 
 	ctx.SetBody(body)

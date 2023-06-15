@@ -1,21 +1,6 @@
 package postgres
 
 var (
-	// createUserCmd = `
-	//
-	//        WITH new_user AS (
-	//            VALUES ('JohnDoe', 'johndoe@example.com')
-	//        )
-	//        INSERT INTO users (nickname, email)
-	//        SELECT nickname, email
-	//        FROM new_user
-	//        UNION ALL
-	//        SELECT nickname, email
-	//        FROM users
-	//        WHERE nickname = (SELECT nickname FROM new_user)
-	//        OR email = (SELECT email FROM new_user)
-	//        RETURNING *
-	//    `
 	createUserCmd = `
 		INSERT INTO users (nickname, fullname, about, email)
 		VALUES ($1, $2, $3, $4)

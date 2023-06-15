@@ -23,7 +23,7 @@ var (
         INSERT INTO threads (title, author, forum, message, slug, created)
         VALUES($1, $2, $3, $4, $5, $6)
         RETURNING  id, title, author, forum, message, slug, created;
-        `
+    `
 
 	getThreadsDescCmd = `
         SELECT id, title, author, forum, message, slug, created

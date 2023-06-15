@@ -82,6 +82,10 @@ func (rep *repository) CreateThread(thread *models.Thread) (models.Thread, error
 				return models.Thread{}, pkgErrors.ForumNotFound
 			}
 
+			if pgErr.ConstraintName == "threads_slug_key" {
+				return models.Thread{}, pkgErrors.ThreadAlreadyExistsError
+			}
+
 			if pgErr.ConstraintName == "threads_author_fkey" {
 				return models.Thread{}, pkgErrors.UserNotFoundError
 			}

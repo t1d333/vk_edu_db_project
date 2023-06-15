@@ -15,6 +15,10 @@ import (
 	forumRepository "github.com/t1d333/vk_edu_db_project/internal/forum/repository/postgres"
 	forumService "github.com/t1d333/vk_edu_db_project/internal/forum/service"
 
+	threadDelivery "github.com/t1d333/vk_edu_db_project/internal/thread/delivery/http"
+	threadRepository "github.com/t1d333/vk_edu_db_project/internal/thread/repository/postgres"
+	threadService "github.com/t1d333/vk_edu_db_project/internal/thread/service"
+
 	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
 )
@@ -48,6 +52,10 @@ func main() {
 	forumRep := forumRepository.NewRepository(logger, conn)
 	forumServ := forumService.NewService(logger, forumRep)
 	forumDelivery.RegisterHandlers(router, logger, forumServ)
+
+	threadRep := threadRepository.NewRepository(logger, conn)
+	threadServ := threadService.NewService(logger, threadRep)
+	threadDelivery.RegisterHandlers(router, logger, threadServ)
 
 	logger.Info("Server starting on port: 5000")
 	fasthttp.ListenAndServe(":5000", router.HandleRequest)

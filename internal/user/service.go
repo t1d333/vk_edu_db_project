@@ -6,6 +6,6 @@ import (
 
 type Service interface {
 	Get(nickname string) (models.User, error)
-	Create(user *models.User) ([]models.User, error)
+	Create(user *models.User) (models.UserList, error)
 	Update(user *models.User) (models.User, error)
 }

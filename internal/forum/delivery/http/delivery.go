@@ -21,7 +21,7 @@ type delivery struct {
 func RegisterHandlers(router *routing.Router, logger *zap.Logger, serv forum.Service) {
 	del := delivery{serv, logger}
 	router.Post("/api/forum/create", middleware.ErrorMiddlaware(del.Create))
-	router.Post("/api/forum/<slug>/create", middleware.ErrorMiddlaware(del.CreateThread))
+	// router.Post("/api/forum/<slug>/create", middleware.ErrorMiddlaware(del.CreateThread))
 	router.Get("/api/forum/<slug>/details", middleware.ErrorMiddlaware(del.GetForum))
 	router.Get("/api/forum/<slug>/users", middleware.ErrorMiddlaware(del.GetUsers))
 	router.Get("/api/forum/<slug>/threads", middleware.ErrorMiddlaware(del.GetThreads))
@@ -86,7 +86,7 @@ func (del *delivery) CreateThread(ctx *routing.Context) error {
 			return err
 		case errors.Is(pkgErrors.ForumNotFound, err):
 			return err
-		case errors.Is(pkgErrors.ThreadAlreadyExists, err):
+		case errors.Is(pkgErrors.ThreadAlreadyExistsError, err):
 			ctx.SetStatusCode(fasthttp.StatusConflict)
 		}
 	} else {

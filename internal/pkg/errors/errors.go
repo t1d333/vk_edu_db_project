@@ -27,16 +27,27 @@ var (
 )
 
 // Thread errors
+var (
+	ThreadAlreadyExistsError = errors.New("Thread already exists")
+	ThreadNotFoundError      = errors.New("Thread not found")
+)
 
-var ThreadAlreadyExists = errors.New("Thread already exists")
+// Post errors
+var (
+	EmptyPostRequestError   = errors.New("Request does not contain any post")
+	ParentPostNotFoundError = errors.New("Parent post not found")
+)
 
 var ErrorToStatusCode = map[error]int{
-	InternalServerError:     fasthttp.StatusInternalServerError,
-	BadRequstError:          fasthttp.StatusBadRequest,
-	InternalDBError:         fasthttp.StatusInternalServerError,
-	UserAlreadyExistsError:  fasthttp.StatusConflict,
-	UserNotFoundError:       fasthttp.StatusNotFound,
-	ForumAlreadyExistsError: fasthttp.StatusConflict,
-	ForumNotFound:           fasthttp.StatusNotFound,
-	ThreadAlreadyExists:     fasthttp.StatusConflict,
+	InternalServerError:      fasthttp.StatusInternalServerError,
+	BadRequstError:           fasthttp.StatusBadRequest,
+	InternalDBError:          fasthttp.StatusInternalServerError,
+	UserAlreadyExistsError:   fasthttp.StatusConflict,
+	UserNotFoundError:        fasthttp.StatusNotFound,
+	ForumAlreadyExistsError:  fasthttp.StatusConflict,
+	ForumNotFound:            fasthttp.StatusNotFound,
+	ThreadAlreadyExistsError: fasthttp.StatusConflict,
+	ThreadNotFoundError:      fasthttp.StatusNotFound,
+	EmptyPostRequestError:    fasthttp.StatusBadRequest,
+	ParentPostNotFoundError:  fasthttp.StatusConflict,
 }
