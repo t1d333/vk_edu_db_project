@@ -21,7 +21,6 @@ type delivery struct {
 func RegisterHandlers(router *routing.Router, logger *zap.Logger, serv forum.Service) {
 	del := delivery{serv, logger}
 	router.Post("/api/forum/create", middleware.ErrorMiddlaware(del.Create))
-	// router.Post("/api/forum/<slug>/create", middleware.ErrorMiddlaware(del.CreateThread))
 	router.Get("/api/forum/<slug>/details", middleware.ErrorMiddlaware(del.GetForum))
 	router.Get("/api/forum/<slug>/users", middleware.ErrorMiddlaware(del.GetUsers))
 	router.Get("/api/forum/<slug>/threads", middleware.ErrorMiddlaware(del.GetThreads))
@@ -104,6 +103,25 @@ func (del *delivery) CreateThread(ctx *routing.Context) error {
 }
 
 func (del *delivery) GetUsers(ctx *routing.Context) error {
+	slug := ctx.Param("slug")
+	limit, err := ctx.QueryArgs().GetUint("limit")
+	if err != nil {
+		limit = 100
+	}
+	sinceTmp := ctx.QueryArgs().Peek("since")
+	since := string(sinceTmp)
+
+	desc := ctx.QueryArgs().GetBool("desc")
+	users, err := del.serv.GetUsers(slug, limit, since, desc)
+	if err != nil {
+		return err
+	}
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	body, err := users.MarshalJSON()
+	if err != nil {
+		del.logger.Error("", zap.Error(err))
+	}
+	ctx.SetBody(body)
 	return nil
 }
 

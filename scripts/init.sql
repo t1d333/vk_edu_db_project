@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS citext;
 CREATE TABLE
   IF NOT EXISTS users (
     id bigserial PRIMARY KEY,
-    nickname citext NOT NULL UNIQUE,
+    nickname citext NOT NULL UNIQUE COLLATE "ucs_basic",
     fullname text,
     about text,
     email citext NOT NULL UNIQUE
@@ -103,18 +103,6 @@ AFTER INSERT ON posts
 FOR EACH ROW
 EXECUTE FUNCTION increment_forum_posts();
 
-
-
--- TODO: пофиксить этот триггер
--- CREATE FUNCTION update_thread_counter() RETURNS trigger as $thread_counter_updater$
---     UPDATE forums
---     SET threads = threads + 1
---     WHERE slug = NEW.slug
--- $thread_counter_updater$ LANGUAGE plpsql;
---
--- CREATE TRIGGER thread_counter_updater BEFORE INSERT ON thread
---     FOR EACH ROW EXECUTE PROCEDURE update_thread_counter();
---
 
 -- TODO: добавить триггер для обновления счетчика posts
 -- TODO: добавить триггер для обновления счетчика votes

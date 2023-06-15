@@ -23,8 +23,8 @@ func (serv *service) GetForum(slug string) (models.Forum, error) {
 	return serv.rep.GetForum(slug)
 }
 
-func (serv *service) GetUsers(slug string) ([]models.User, error) {
-	return serv.rep.GetUsers(slug)
+func (serv *service) GetUsers(slug string, limit int, since string, desc bool) (models.UserList, error) {
+	return serv.rep.GetUsers(slug, limit, since, desc)
 }
 
 func (serv *service) GetThreads(slug string, limit int, since string, desc bool) ([]models.Thread, error) {

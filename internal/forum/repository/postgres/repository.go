@@ -97,8 +97,38 @@ func (rep *repository) CreateThread(thread *models.Thread) (models.Thread, error
 	return tmp, nil
 }
 
-func (rep *repository) GetUsers(slug string) ([]models.User, error) {
-	return []models.User{}, nil
+func (rep *repository) GetUsers(slug string, limit int, since string, desc bool) ([]models.User, error) {
+	var rows pgx.Rows
+	var err error
+	users := make([]models.User, 0)
+	if _, err := rep.GetForum(slug); err != nil {
+		return []models.User{}, err
+	}
+
+	if desc {
+		if since != "" {
+			rows, err = rep.conn.Query(context.Background(), getForumUsersDescWithSince, slug, since, limit)
+		} else {
+			rows, err = rep.conn.Query(context.Background(), getForumUsersDesc, slug, limit)
+		}
+	} else {
+		rows, err = rep.conn.Query(context.Background(), getForumUsersAsc, slug, since, limit)
+	}
+
+	if err != nil {
+		rep.logger.Error("DB error", zap.Error(err))
+		return []models.User{}, pkgErrors.InternalDBError
+	}
+
+	tmp := models.User{}
+	for rows.Next() {
+		if err := rows.Scan(&tmp.Id, &tmp.Nickname, &tmp.Fullname, &tmp.About, &tmp.Email); err != nil {
+			rep.logger.Error("DB error", zap.Error(err))
+			return []models.User{}, pkgErrors.InternalDBError
+		}
+		users = append(users, tmp)
+	}
+	return users, nil
 }
 
 func (rep *repository) GetThreads(slug string, limit int, since string, desc bool) ([]models.Thread, error) {

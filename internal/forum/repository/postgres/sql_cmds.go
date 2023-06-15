@@ -55,4 +55,45 @@ var (
         ORDER BY created
         LIMIT $2;
     `
+	getForumUsersAsc = `
+		SELECT DISTINCT users.id, nickname, fullname, about, email
+        FROM users
+        INNER JOIN threads ON users.nickname = threads.author
+        WHERE threads.forum = $1  AND users.nickname > $2
+        UNION
+	    SELECT DISTINCT users.id, nickname, fullname, about, email
+        FROM users
+        INNER JOIN posts ON users.nickname = posts.author
+        WHERE posts.forum = $1  AND users.nickname > $2
+        ORDER BY nickname
+        LIMIT $3;
+    `
+
+	getForumUsersDesc = `
+		SELECT DISTINCT users.id, nickname, fullname, about, email
+        FROM users
+        INNER JOIN threads ON users.nickname = threads.author
+        WHERE threads.forum = $1
+        UNION
+	    SELECT DISTINCT users.id, nickname, fullname, about, email
+        FROM users
+        INNER JOIN posts ON users.nickname = posts.author
+        WHERE posts.forum = $1
+        ORDER BY nickname DESC
+        LIMIT $2;
+    `
+
+	getForumUsersDescWithSince = `
+		SELECT DISTINCT users.id, nickname, fullname, about, email
+        FROM users
+        INNER JOIN threads ON users.nickname = threads.author
+        WHERE threads.forum = $1  AND users.nickname < $2
+        UNION
+	    SELECT DISTINCT users.id, nickname, fullname, about, email
+        FROM users
+        INNER JOIN posts ON users.nickname = posts.author
+        WHERE posts.forum = $1 AND users.nickname < $2
+        ORDER BY nickname DESC
+        LIMIT $3;
+    `
 )
