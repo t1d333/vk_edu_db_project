@@ -36,6 +36,7 @@ var (
 var (
 	EmptyPostRequestError   = errors.New("Request does not contain any post")
 	ParentPostNotFoundError = errors.New("Parent post not found")
+	PostNotFoundError       = errors.New("Post not found")
 )
 
 var ErrorToStatusCode = map[error]int{
@@ -50,4 +51,5 @@ var ErrorToStatusCode = map[error]int{
 	ThreadNotFoundError:      fasthttp.StatusNotFound,
 	EmptyPostRequestError:    fasthttp.StatusBadRequest,
 	ParentPostNotFoundError:  fasthttp.StatusConflict,
+	PostNotFoundError:        fasthttp.StatusNotFound,
 }

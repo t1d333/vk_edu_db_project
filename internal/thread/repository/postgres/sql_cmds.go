@@ -5,13 +5,13 @@ var (
         INSERT INTO posts
         (parent, author, message, thread, forum, created)
         VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id, parent, author, message, isEdited, forum, thread, created; 
+        RETURNING id, parent, author, message, isEdited, forum, thread; 
     `
 	createPostByIdCmd = `
         INSERT INTO posts
         (parent, author, message, thread, forum, created)
-        VALUES ($1, $2, $3, $4, (SELECT forum FROM threads WHERE id = $4), $5)
-        RETURNING id, parent, author, message, isEdited, forum, thread, created; 
+        VALUES ($1, $2, $3, $4, (SELECT forum FROM threads WHERE id = $4))
+        RETURNING id, parent, author, message, isEdited, forum, thread; 
     `
 
 	createPostBySlugCmd = `
@@ -22,8 +22,8 @@ var (
         )
         INSERT INTO posts
         (parent, author, message, thread, forum, created)
-        VALUES ($1, $2, $3, (SELECT id FROM thread) , (SELECT forum FROM thread), $5)
-        RETURNING id, parent, author, message, isEdited, forum, thread, created; 
+        VALUES ($1, $2, $3, (SELECT id FROM thread) , (SELECT forum FROM thread))
+        RETURNING id, parent, author, message, isEdited, forum, thread; 
     `
 
 	createThreadCmd = `

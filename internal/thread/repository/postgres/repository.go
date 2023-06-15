@@ -59,16 +59,16 @@ func (rep *repository) CreatePosts(slugOrId string, posts []models.Post) ([]mode
 	result := make([]models.Post, 0)
 	postTmp := models.Post{}
 	created := time.Now().Format(time.RFC3339Nano)
-	var dt pgtype.Date
 	var row pgx.Row
 	thread, err := rep.GetThread(slugOrId)
 	if err != nil {
 		return []models.Post{}, err
 	}
 
+	postTmp.Created = created
 	for _, post := range posts {
 		row = rep.conn.QueryRow(context.Background(), createPostCmd, post.Parent, post.Author, post.Message, thread.Id, thread.Forum, created)
-		if err := row.Scan(&postTmp.Id, &postTmp.Parent, &postTmp.Author, &postTmp.Message, &postTmp.IsEdited, &postTmp.Forum, &postTmp.Thread, &dt); err != nil {
+		if err := row.Scan(&postTmp.Id, &postTmp.Parent, &postTmp.Author, &postTmp.Message, &postTmp.IsEdited, &postTmp.Forum, &postTmp.Thread); err != nil {
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) {
 				if pgErr.Message == "Invalid parent" {
@@ -89,7 +89,6 @@ func (rep *repository) CreatePosts(slugOrId string, posts []models.Post) ([]mode
 			rep.logger.Error("DB error", zap.Error(err))
 			return []models.Post{}, pkgErrors.InternalDBError
 		}
-		post.Created = dt.Time.Format(time.RFC3339Nano)
 		result = append(result, postTmp)
 	}
 	return result, nil

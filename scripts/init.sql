@@ -91,7 +91,6 @@ END;
 $$
 LANGUAGE plpgsql;
 
-
 CREATE TRIGGER increment_forum_threads_trigger
 AFTER INSERT ON threads
 FOR EACH ROW
@@ -104,5 +103,4 @@ FOR EACH ROW
 EXECUTE FUNCTION increment_forum_posts();
 
 
--- TODO: добавить триггер для обновления счетчика posts
--- TODO: добавить триггер для обновления счетчика votes
+
