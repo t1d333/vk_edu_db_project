@@ -192,19 +192,19 @@ CREATE INDEX IF NOT EXISTS  user_nickname_email ON users (nickname, email);
 -- Threads
 CREATE INDEX IF NOT EXISTS thread_slug_hash ON threads USING hash (slug);
 CREATE INDEX IF NOT EXISTS thread_forum_hash ON threads USING hash (forum);
-CREATE INDEX IF NOT EXISTS search_thread_by_forum ON threads (forum, created);
+CREATE INDEX IF NOT EXISTS thread_forum_search ON threads (forum, created);
 
 -- Posts
-CREATE INDEX IF NOT EXISTS for_search_users_on_forum_posts ON posts (forum, author);
-CREATE INDEX IF NOT EXISTS for_flat_search ON posts (thread, id);
-CREATE INDEX IF NOT EXISTS tree_search ON posts (thread, path);
-CREATE INDEX IF NOT EXISTS parent_tree_search ON posts ((path[1]), path);
+CREATE INDEX IF NOT EXISTS user_posts ON posts (forum, author);
+CREATE INDEX IF NOT EXISTS flat_sort ON posts (thread, id);
+CREATE INDEX IF NOT EXISTS tree_sort ON posts (thread, path);
+CREATE INDEX IF NOT EXISTS parent_tree_sort ON posts ((path[1]), path);
 
 -- Forums
 CREATE INDEX IF NOT EXISTS forum_slug_hash ON forums using hash (slug);
 
 -- Votes
-CREATE INDEX IF NOT EXISTS search_user_vote ON votes (nickname, thread);
+CREATE INDEX IF NOT EXISTS user_vote ON votes (nickname, thread);
 
 -- Posts
 CREATE INDEX IF NOT EXISTS post_id_hash ON posts using hash (id);
