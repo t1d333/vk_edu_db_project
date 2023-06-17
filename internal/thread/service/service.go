@@ -31,6 +31,26 @@ func (serv *service) UpdateThread(slugOrId string, thread *models.Thread) (model
 	return serv.rep.UpdateThread(slugOrId, thread)
 }
 
-func (serv *service) GetPosts(slugOrId string) ([]models.Post, error) {
-	return serv.rep.GetPosts(slugOrId)
+func (serv *service) GetPosts(slugOrId string, limit, since int, sort string, desc bool) (models.PostList, error) {
+	switch sort {
+	case "tree":
+		return serv.rep.GetPostsTree(slugOrId, limit, since, desc)
+	case "parent_tree":
+		return serv.rep.GetPostsParentTree(slugOrId, limit, since, desc)
+	default:
+		return serv.rep.GetPostsFlat(slugOrId, limit, since, desc)
+	}
+}
+
+func (serv *service) AddVote(slugOrId string, vote *models.Vote) (models.Thread, error) {
+	thread, err := serv.rep.GetThread(slugOrId)
+	if err != nil {
+		return thread, err
+	}
+
+	if _, err := serv.rep.GetVote(&thread, vote); err == nil {
+		return serv.rep.UpdateVote(slugOrId, &thread, vote)
+	} else {
+		return serv.rep.AddVote(&thread, vote)
+	}
 }

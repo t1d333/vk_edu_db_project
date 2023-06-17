@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/qiangxue/fasthttp-routing"
 
 	userDelivery "github.com/t1d333/vk_edu_db_project/internal/user/delivery/http"
@@ -23,6 +23,10 @@ import (
 	postRepository "github.com/t1d333/vk_edu_db_project/internal/post/repository/postgres"
 	postService "github.com/t1d333/vk_edu_db_project/internal/post/service"
 
+	serviceDelivery "github.com/t1d333/vk_edu_db_project/internal/service/delivery/http"
+	serviceRepository "github.com/t1d333/vk_edu_db_project/internal/service/repository/postgres"
+	serviceService "github.com/t1d333/vk_edu_db_project/internal/service/service"
+
 	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
 )
@@ -39,7 +43,8 @@ func main() {
 	dbHost := os.Getenv("POSTGRES_HOST")
 	dbPort := os.Getenv("POSTGRES_PORT")
 
-	conn, err := pgx.Connect(context.Background(), "postgres://"+dbUser+":"+dbPassword+"@"+dbHost+":"+dbPort+"/"+dbName)
+	conf, _ := pgxpool.ParseConfig("postgres://" + dbUser + ":" + dbPassword + "@" + dbHost + ":" + dbPort + "/" + dbName + "?" + "pool_max_conns=100")
+	conn, err := pgxpool.NewWithConfig(context.Background(), conf)
 	if err != nil {
 		logger.Error("Failed to connect to db ", zap.Error(err))
 		os.Exit(1)
@@ -64,6 +69,10 @@ func main() {
 	postRep := postRepository.NewRepository(logger, conn)
 	postServ := postService.NewService(logger, postRep)
 	postDelivery.RegisterHandlers(router, logger, postServ)
+
+	servRep := serviceRepository.NewRepository(logger, conn)
+	servServ := serviceService.NewService(logger, servRep)
+	serviceDelivery.RegisterHandlers(router, logger, servServ)
 
 	logger.Info("Server starting on port: 5000")
 	fasthttp.ListenAndServe(":5000", router.HandleRequest)

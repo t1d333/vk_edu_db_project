@@ -51,7 +51,9 @@ func easyjson2d00218DecodeGithubComT1d333VkEduDbProjectInternalModels(in *jlexer
 		case "slug":
 			out.Slug = string(in.String())
 		case "created":
-			out.Created = string(in.String())
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.Created).UnmarshalJSON(data))
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -104,7 +106,7 @@ func easyjson2d00218EncodeGithubComT1d333VkEduDbProjectInternalModels(out *jwrit
 	{
 		const prefix string = ",\"created\":"
 		out.RawString(prefix)
-		out.String(string(in.Created))
+		out.Raw((in.Created).MarshalJSON())
 	}
 	out.RawByte('}')
 }

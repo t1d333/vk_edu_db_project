@@ -39,6 +39,12 @@ var (
 	PostNotFoundError       = errors.New("Post not found")
 )
 
+// Vote errors
+var (
+	VoiceArleadyExistsError = errors.New("Voice arleady exists")
+	VoiceNotFoundError      = errors.New("Voice not found")
+)
+
 var ErrorToStatusCode = map[error]int{
 	InternalServerError:      fasthttp.StatusInternalServerError,
 	BadRequstError:           fasthttp.StatusBadRequest,
@@ -52,4 +58,6 @@ var ErrorToStatusCode = map[error]int{
 	EmptyPostRequestError:    fasthttp.StatusBadRequest,
 	ParentPostNotFoundError:  fasthttp.StatusConflict,
 	PostNotFoundError:        fasthttp.StatusNotFound,
+	VoiceArleadyExistsError:  fasthttp.StatusConflict,
+	VoiceNotFoundError:       fasthttp.StatusNotFound,
 }

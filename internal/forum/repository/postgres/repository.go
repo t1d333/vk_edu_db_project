@@ -3,11 +3,10 @@ package postgres
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/t1d333/vk_edu_db_project/internal/forum"
 	"github.com/t1d333/vk_edu_db_project/internal/models"
 	pkgErrors "github.com/t1d333/vk_edu_db_project/internal/pkg/errors"
@@ -16,10 +15,10 @@ import (
 
 type repository struct {
 	logger *zap.Logger
-	conn   *pgx.Conn
+	conn   *pgxpool.Pool
 }
 
-func NewRepository(logger *zap.Logger, conn *pgx.Conn) forum.Repository {
+func NewRepository(logger *zap.Logger, conn *pgxpool.Pool) forum.Repository {
 	return &repository{logger, conn}
 }
 
@@ -38,7 +37,7 @@ func (rep *repository) Create(forum *models.Forum) (models.Forum, error) {
 	if err := row.Scan(&forum.Id, &forum.Title, &forum.User, &forum.Slug, &forum.Posts, &forum.Threads); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.ConstraintName == "forums_slug_key" {
+			if pgErr.ConstraintName == "forums_pkey" {
 				tmp, _ := rep.GetForum(forum.Slug)
 				return tmp, pkgErrors.ForumAlreadyExistsError
 			}
@@ -69,12 +68,9 @@ func (rep *repository) GetForum(slug string) (models.Forum, error) {
 }
 
 func (rep *repository) CreateThread(thread *models.Thread) (models.Thread, error) {
-	created, _ := time.Parse(time.RFC3339Nano, thread.Created)
-	row := rep.conn.QueryRow(context.Background(), createThreadCmd, thread.Title, thread.Author, thread.Forum, thread.Message, thread.Slug, created)
+	row := rep.conn.QueryRow(context.Background(), createThreadCmd, thread.Title, thread.Author, thread.Forum, thread.Message, thread.Slug, thread.Created)
 	tmp := models.Thread{}
-	var dt pgtype.Date
-	err := row.Scan(&tmp.Id, &tmp.Title, &tmp.Author, &tmp.Forum, &tmp.Message, &tmp.Slug, &dt)
-	tmp.Created = dt.Time.Format(time.RFC3339Nano)
+	err := row.Scan(&tmp.Id, &tmp.Title, &tmp.Author, &tmp.Forum, &tmp.Message, &tmp.Slug, &thread.Created)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -107,13 +103,18 @@ func (rep *repository) GetUsers(slug string, limit int, since string, desc bool)
 
 	if desc {
 		if since != "" {
-			rows, err = rep.conn.Query(context.Background(), getForumUsersDescWithSince, slug, since, limit)
+			rows, err = rep.conn.Query(context.Background(), getForumUsersWithSinceDesc, slug, since, limit)
 		} else {
 			rows, err = rep.conn.Query(context.Background(), getForumUsersDesc, slug, limit)
 		}
 	} else {
-		rows, err = rep.conn.Query(context.Background(), getForumUsersAsc, slug, since, limit)
+		if since != "" {
+			rows, err = rep.conn.Query(context.Background(), getForumUsersWithSinceAsc, slug, since, limit)
+		} else {
+			rows, err = rep.conn.Query(context.Background(), getForumUsersAsc, slug, limit)
+		}
 	}
+	defer rows.Close()
 
 	if err != nil {
 		rep.logger.Error("DB error", zap.Error(err))
@@ -122,7 +123,7 @@ func (rep *repository) GetUsers(slug string, limit int, since string, desc bool)
 
 	tmp := models.User{}
 	for rows.Next() {
-		if err := rows.Scan(&tmp.Id, &tmp.Nickname, &tmp.Fullname, &tmp.About, &tmp.Email); err != nil {
+		if err := rows.Scan(&tmp.Nickname, &tmp.Fullname, &tmp.About, &tmp.Email); err != nil {
 			rep.logger.Error("DB error", zap.Error(err))
 			return []models.User{}, pkgErrors.InternalDBError
 		}
@@ -170,16 +171,14 @@ func (rep *repository) GetThreads(slug string, limit int, since string, desc boo
 
 	threads := make([]models.Thread, 0)
 	tmp := models.Thread{}
-	var dt pgtype.Date
 
 	for rows.Next() {
 
-		if err := rows.Scan(&tmp.Id, &tmp.Title, &tmp.Author, &tmp.Forum, &tmp.Message, &tmp.Slug, &dt); err != nil {
+		if err := rows.Scan(&tmp.Id, &tmp.Title, &tmp.Author, &tmp.Forum, &tmp.Message, &tmp.Slug, &tmp.Votes, &tmp.Created); err != nil {
 			rep.logger.Error("DB error", zap.Error(err))
 			return threads, pkgErrors.InternalDBError
 		}
 
-		tmp.Created = dt.Time.Format(time.RFC3339Nano)
 		threads = append(threads, tmp)
 	}
 

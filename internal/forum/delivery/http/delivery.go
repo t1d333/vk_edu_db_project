@@ -131,7 +131,6 @@ func (del *delivery) GetThreads(ctx *routing.Context) error {
 	sinceTmp := ctx.QueryArgs().Peek("since")
 	since := string(sinceTmp)
 	desc := ctx.QueryArgs().GetBool("desc")
-	del.logger.Info("", zap.Int("limit", limit), zap.String("since", since), zap.Bool("desc", desc))
 	threads, err := del.serv.GetThreads(slug, limit, since, desc)
 	if err != nil {
 		return err

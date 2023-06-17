@@ -13,12 +13,11 @@ logs:
 
 .PHONY: run
 run: build-image
-	docker run --rm \
+	docker run --rm -d \
         --memory 2G \
         --log-opt max-size=5M \
         --log-opt max-file=3 \
         --name forum \
-        -p 5432:5432 \
-		-p 5000:5000 -d \
+		-p 5000:5000 \
 	  vk_edu/forum
 

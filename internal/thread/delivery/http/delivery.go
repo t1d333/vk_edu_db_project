@@ -25,6 +25,7 @@ func RegisterHandlers(router *routing.Router, logger *zap.Logger, serv thread.Se
 	router.Get("/api/thread/<slug_or_id>/details", middleware.ErrorMiddlaware(del.GetThread))
 	router.Post("/api/thread/<slug_or_id>/details", middleware.ErrorMiddlaware(del.UpdateThread))
 	router.Get("/api/thread/<slug_or_id>/posts", middleware.ErrorMiddlaware(del.GetPosts))
+	router.Post("/api/thread/<slug_or_id>/vote", middleware.ErrorMiddlaware(del.AddVote))
 }
 
 func (del *delivery) CreateThread(ctx *routing.Context) error {
@@ -100,7 +101,10 @@ func (del *delivery) GetThread(ctx *routing.Context) error {
 func (del *delivery) UpdateThread(ctx *routing.Context) error {
 	slugOrId := ctx.Param("slug_or_id")
 	thread := &models.Thread{}
-	thread.UnmarshalJSON(ctx.PostBody())
+	if err := thread.UnmarshalJSON(ctx.PostBody()); err != nil {
+		return pkgErrors.BadRequstError
+	}
+
 	updatedThread, err := del.serv.UpdateThread(slugOrId, thread)
 	if err != nil {
 		return err
@@ -118,5 +122,53 @@ func (del *delivery) UpdateThread(ctx *routing.Context) error {
 }
 
 func (del *delivery) GetPosts(ctx *routing.Context) error {
+	slugOrId := ctx.Param("slug_or_id")
+	limit, err := ctx.QueryArgs().GetUint("limit")
+	if err != nil {
+		limit = 100
+	}
+
+	sort := ctx.QueryArgs().Peek("sort")
+	desc := ctx.QueryArgs().GetBool("desc")
+
+	since, err := ctx.QueryArgs().GetUint("since")
+	if err != nil {
+		since = 0
+	}
+
+	posts, err := del.serv.GetPosts(slugOrId, limit, since, string(sort), desc)
+	if err != nil {
+		return err
+	}
+
+	body, err := posts.MarshalJSON()
+	if err != nil {
+		return pkgErrors.InternalServerError
+	}
+
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	ctx.SetBody(body)
+	return nil
+}
+
+func (del *delivery) AddVote(ctx *routing.Context) error {
+	slugOrId := ctx.Param("slug_or_id")
+	vote := models.Vote{}
+	if err := vote.UnmarshalJSON(ctx.PostBody()); err != nil {
+		return pkgErrors.BadRequstError
+	}
+
+	thread, err := del.serv.AddVote(slugOrId, &vote)
+	if err != nil {
+		return err
+	}
+
+	body, err := thread.MarshalJSON()
+	if err != nil {
+		return pkgErrors.InternalServerError
+	}
+
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	ctx.SetBody(body)
 	return nil
 }

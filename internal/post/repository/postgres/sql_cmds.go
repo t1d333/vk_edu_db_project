@@ -14,7 +14,7 @@ var (
     `
 
 	getPostThread = `
-        SELECT  id, title, author, forum, message, slug, created
+        SELECT  id, title, author, forum, message, slug, votes, created
         FROM threads
         WHERE id = $1;
     `

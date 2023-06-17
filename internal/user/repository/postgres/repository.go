@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/t1d333/vk_edu_db_project/internal/models"
 	pkgErrors "github.com/t1d333/vk_edu_db_project/internal/pkg/errors"
 	"github.com/t1d333/vk_edu_db_project/internal/user"
@@ -14,10 +15,10 @@ import (
 
 type repository struct {
 	logger *zap.Logger
-	conn   *pgx.Conn
+	conn   *pgxpool.Pool
 }
 
-func NewRepository(logger *zap.Logger, conn *pgx.Conn) user.Repository {
+func NewRepository(logger *zap.Logger, conn *pgxpool.Pool) user.Repository {
 	return &repository{logger, conn}
 }
 
@@ -27,7 +28,7 @@ func (rep *repository) Create(user *models.User) ([]models.User, error) {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			users := make([]models.User, 0)
-			if pgErr.ConstraintName == "users_email_key" || pgErr.ConstraintName == "users_nickname_key" {
+			if pgErr.ConstraintName == "users_email_key" || pgErr.ConstraintName == "users_pkey" {
 				if user, err := rep.Get(user.Nickname); err == nil {
 					users = append(users, user)
 				}

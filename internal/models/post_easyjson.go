@@ -117,7 +117,9 @@ func easyjson5a72dc82DecodeGithubComT1d333VkEduDbProjectInternalModels1(in *jlex
 		case "thread":
 			out.Thread = int(in.Int())
 		case "created":
-			out.Created = string(in.String())
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.Created).UnmarshalJSON(data))
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -170,7 +172,7 @@ func easyjson5a72dc82EncodeGithubComT1d333VkEduDbProjectInternalModels1(out *jwr
 	{
 		const prefix string = ",\"created\":"
 		out.RawString(prefix)
-		out.String(string(in.Created))
+		out.Raw((in.Created).MarshalJSON())
 	}
 	out.RawByte('}')
 }
