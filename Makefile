@@ -13,7 +13,7 @@ logs:
 
 .PHONY: run
 run: build-image
-	docker run --rm -d \
+	docker run --rm \
         --memory 2G \
         --log-opt max-size=5M \
         --log-opt max-file=3 \
