@@ -9,10 +9,12 @@ RUN go build -o app ./cmd/forum/main.go
 
 FROM postgres:14 as db
 USER postgres
+COPY ./scripts/init.sql .
 RUN pg_createcluster 14 main && \
     /etc/init.d/postgresql start &&\
     psql --command "CREATE USER forum WITH SUPERUSER PASSWORD 'password';" &&\
     createdb -O forum forum && \
+    psql -f ./init.sql -d forum && \
     /etc/init.d/postgresql stop 
 
 
@@ -24,9 +26,8 @@ ENV POSTGRES_PORT 5432
 
 USER root
 COPY --from=builder /forum/app app
-COPY ./scripts/init.sql .
 ENV PGPASSWORD password 
-CMD service postgresql start && psql -h localhost -d forum -U forum -p 5432 -a -q -f ./init.sql && ./app
+CMD service postgresql start && ./app
 
 
 
