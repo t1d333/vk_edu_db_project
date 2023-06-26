@@ -14,7 +14,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.53
-  func-test:
+  func-testing:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -30,3 +30,23 @@ jobs:
         run: make run
       - name: run func tests
         run: ./technopark-dbms-forum func -u http://localhost:5000/api
+      - name: upload test program
+        uses: actions/upload-artifact@v3
+        with:
+          name: technopark-dbms-forum
+          path: ./technopark-dbms-forum
+  stress-testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: download test program
+        uses: actions/upload-artifact@v3
+        with:
+          name: technopark-dbms-forum
+          path: ./technopark-dbms-forum
+      - name: run app
+        run: make run
+      - name: fill db
+        run: ./technopark-dbms-forum fill --url=http://localhost:5000/api --timeout=900
+      - name: run stress testing
+        run: ./technopark-dbms-forum perf --url=http://localhost:5000/api --duration=300 --step=60
