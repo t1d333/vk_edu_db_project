@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/qiangxue/fasthttp-routing"
+	"github.com/spf13/viper"
 
 	userDelivery "github.com/t1d333/vk_edu_db_project/internal/user/delivery/http"
 	userRepository "github.com/t1d333/vk_edu_db_project/internal/user/repository/postgres"
@@ -27,21 +28,25 @@ import (
 	serviceRepository "github.com/t1d333/vk_edu_db_project/internal/service/repository/postgres"
 	serviceService "github.com/t1d333/vk_edu_db_project/internal/service/service"
 
+	"github.com/t1d333/vk_edu_db_project/internal/pkg/configs"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
 )
 
 func main() {
+    
+	configs.InitConfig()
+
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		return
 	}
 
-	dbUser := os.Getenv("POSTGRES_USER")
-	dbPassword := os.Getenv("POSTGRES_PASSWORD")
-	dbName := os.Getenv("POSTGRES_DB")
-	dbHost := os.Getenv("POSTGRES_HOST")
-	dbPort := os.Getenv("POSTGRES_PORT")
+	dbUser := viper.GetString("db.username")
+	dbPassword := viper.GetString("db.password")
+	dbName := viper.GetString("db.name")
+	dbHost := viper.GetString("db.host")
+	dbPort := viper.GetString("db.port")
 
 	conf, _ := pgxpool.ParseConfig("postgres://" + dbUser + ":" + dbPassword + "@" + dbHost + ":" + dbPort + "/" + dbName + "?" + "pool_max_conns=100")
 	conn, err := pgxpool.NewWithConfig(context.Background(), conf)
@@ -79,6 +84,8 @@ func main() {
 	servServ := serviceService.NewService(logger, servRep)
 	serviceDelivery.RegisterHandlers(router, logger, servServ)
 
-	logger.Info("Server starting on port: 5000")
-	fasthttp.ListenAndServe(":5000", router.HandleRequest)
+	port := viper.GetString("port")
+    
+	logger.Info("Server starting on port: " + port)
+    fasthttp.ListenAndServe(":" + port, router.HandleRequest)
 }

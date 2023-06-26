@@ -10,6 +10,7 @@ RUN go build -o app ./cmd/forum/main.go
 FROM postgres:14 as db
 USER postgres
 COPY ./scripts/init.sql .
+COPY ./configs/main.yml /forum/configs/main.yml
 RUN pg_createcluster 14 main && \
     /etc/init.d/postgresql start &&\
     psql --command "CREATE USER forum WITH SUPERUSER PASSWORD 'password';" &&\
