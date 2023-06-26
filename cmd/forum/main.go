@@ -54,6 +54,11 @@ func main() {
 
 	router := routing.New()
 
+	router.Use(func(ctx *routing.Context) error {
+		logger.Info("New request", zap.String("Method", string(ctx.Method())), zap.String("URI", string(ctx.URI().RequestURI())))
+		return ctx.Next()
+	})
+
 	userRep := userRepository.NewRepository(logger, conn)
 	userServ := userService.NewService(logger, userRep)
 	userDelivery.RegisterHandlers(router, logger, userServ)
