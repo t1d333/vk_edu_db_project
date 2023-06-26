@@ -45,7 +45,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: technopark-dbms-forum
-          path: ./technopark-dbms-forum
+          path: ./
       - name: run app
         run: make run
       - name: fill db
