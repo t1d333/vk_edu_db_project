@@ -46,6 +46,8 @@ jobs:
         with:
           name: technopark-dbms-forum
           path: ./
+      - name: chmod test program
+        run: chmod 777 ./technopark-dbms-forum
       - name: run app
         run: make run
       - name: fill db
