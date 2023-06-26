@@ -118,8 +118,7 @@ func (rep *repository) CreatePosts(slugOrId string, posts []models.Post) ([]mode
 	}
 
 	for rows.Next() {
-		if rows.Scan(&postTmp.Id, &postTmp.Parent, &postTmp.Author, &postTmp.Message, &postTmp.IsEdited, &postTmp.Forum, &postTmp.Thread); err != nil {
-			rep.logger.Error("TEST", zap.Error(err))
+        if err := rows.Scan(&postTmp.Id, &postTmp.Parent, &postTmp.Author, &postTmp.Message, &postTmp.IsEdited, &postTmp.Forum, &postTmp.Thread); err != nil {
 			return []models.Post{}, pkgErrors.InternalDBError
 		}
 		result = append(result, postTmp)

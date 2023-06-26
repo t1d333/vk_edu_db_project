@@ -64,7 +64,6 @@ func (del *delivery) Create(ctx *routing.Context) error {
 		ctx.SetStatusCode(fasthttp.StatusCreated)
 	}
 
-	body = make([]byte, 0)
 	if err == nil {
 		body, _ = users[0].MarshalJSON()
 	} else {

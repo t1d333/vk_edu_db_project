@@ -34,7 +34,6 @@ import (
 )
 
 func main() {
-    
 	configs.InitConfig()
 
 	logger, err := zap.NewDevelopment()
@@ -51,7 +50,7 @@ func main() {
 	conf, _ := pgxpool.ParseConfig("postgres://" + dbUser + ":" + dbPassword + "@" + dbHost + ":" + dbPort + "/" + dbName + "?" + "pool_max_conns=100")
 	conn, err := pgxpool.NewWithConfig(context.Background(), conf)
 	if err != nil {
-		logger.Error("Failed to connect to db ", zap.Error(err))
+		logger.Fatal("Failed to connect to db ", zap.Error(err))
 		os.Exit(1)
 	}
 
@@ -85,7 +84,9 @@ func main() {
 	serviceDelivery.RegisterHandlers(router, logger, servServ)
 
 	port := viper.GetString("port")
-    
+
 	logger.Info("Server starting on port: " + port)
-    fasthttp.ListenAndServe(":" + port, router.HandleRequest)
+	if err := fasthttp.ListenAndServe(":"+port, router.HandleRequest); err != nil {
+		logger.Fatal("Failed to start server", zap.Error(err))
+	}
 }
